@@ -1,4 +1,4 @@
-namespace ASCOM.mytjaAstroPSU.Switch
+namespace ASCOM.mytjaAstroBox.Switch
 {
     partial class SetupDialogForm
     {
@@ -145,7 +145,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(327, 56);
             this.label1.TabIndex = 2;
-            this.label1.Text = "AstroPSU Pico ASCOM Driver Setup\r\nCopyright 2025 Mitja Ševerkar";
+            this.label1.Text = "AstroBox Pico ASCOM Driver Setup\r\nCopyright 2025 Mitja ï¿½everkar";
             // 
             // picASCOM
             // 
@@ -930,7 +930,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
             this.Name = "SetupDialogForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "AstroPSU Setup";
+            this.Text = "AstroBox Setup";
             this.Load += new System.EventHandler(this.SetupDialogForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).EndInit();
             this.ResumeLayout(false);

@@ -1,6 +1,6 @@
 // TODO fill in this information for your driver, then remove this line!
 //
-// ASCOM Switch driver for mytjaAstroPSU
+// ASCOM Switch driver for mytjaAstroBox
 //
 // Description:	 <To be completed by driver developer>
 //
@@ -17,25 +17,25 @@ using ASCOM.Utilities;
 using System.Collections;
 using System.Windows.Forms;
 
-namespace ASCOM.mytjaAstroPSU.Switch
+namespace ASCOM.mytjaAstroBox.Switch
 {
     //
     // This code is mostly a presentation layer for the functionality in the SwitchHardware class. You should not need to change the contents of this file very much, if at all.
     // Most customisation will be in the SwitchHardware class, which is shared by all instances of the driver, and which must handle all aspects of communicating with your device.
     //
-    // Your driver's DeviceID is ASCOM.mytjaAstroPSU.Switch
+    // Your driver's DeviceID is ASCOM.mytjaAstroBox.Switch
     //
-    // The COM Guid attribute sets the CLSID for ASCOM.mytjaAstroPSU.Switch
-    // The COM ClassInterface/None attribute prevents an empty interface called _mytjaAstroPSU from being created and used as the [default] interface
+    // The COM Guid attribute sets the CLSID for ASCOM.mytjaAstroBox.Switch
+    // The COM ClassInterface/None attribute prevents an empty interface called _mytjaAstroBox from being created and used as the [default] interface
     //
 
     /// <summary>
-    /// ASCOM Switch Driver for mytjaAstroPSU.
+    /// ASCOM Switch Driver for mytjaAstroBox.
     /// </summary>
     [ComVisible(true)]
     [Guid("c0bbfa1a-31ad-4953-a9e0-624b2c11be03")]
-    [ProgId("ASCOM.mytjaAstroPSU.Switch")]
-    [ServedClassName("ASCOM Driver for AstroPSU by mytja")] // Driver description that appears in the Chooser, customise as required
+    [ProgId("ASCOM.mytjaAstroBox.Switch")]
+    [ServedClassName("ASCOM Driver for AstroBox by mytja")] // Driver description that appears in the Chooser, customise as required
     [ClassInterface(ClassInterfaceType.None)]
     public class Switch : ReferenceCountedObjectBase, ISwitchV2, IDisposable
     {
@@ -50,7 +50,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
         #region Initialisation and Dispose
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="mytjaAstroPSU"/> class. Must be public to successfully register for COM.
+        /// Initializes a new instance of the <see cref="mytjaAstroBox"/> class. Must be public to successfully register for COM.
         /// </summary>
         public Switch()
         {
@@ -68,7 +68,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
                 // By default all driver logging will appear in Hardware log file
                 // If you would like each instance of the driver to have its own log file as well, uncomment the lines below
 
-                tl = new TraceLogger("", "mytjaAstroPSU.Driver"); // Remove the leading ASCOM. from the ProgId because this will be added back by TraceLogger.
+                tl = new TraceLogger("", "mytjaAstroBox.Driver"); // Remove the leading ASCOM. from the ProgId because this will be added back by TraceLogger.
                 SetTraceState();
 
                 // Initialise the hardware if required
@@ -85,7 +85,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
             catch (Exception ex)
             {
                 LogMessage("Switch", $"Initialisation exception: {ex}");
-                MessageBox.Show($"{ex.Message}", "Exception creating ASCOM.mytjaAstroPSU.Switch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{ex.Message}", "Exception creating ASCOM.mytjaAstroBox.Switch", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

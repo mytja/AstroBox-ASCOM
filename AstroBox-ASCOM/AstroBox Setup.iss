@@ -4,40 +4,40 @@
 ;
 [Setup]
 AppID={{ecdf1e3b-ae38-496c-953f-5f5181c687b8}
-AppName=ASCOM AstroPSU Switch Driver
-AppVerName=ASCOM AstroPSU Switch Driver 1.0.2
+AppName=ASCOM AstroBox Switch Driver
+AppVerName=ASCOM AstroBox Switch Driver 1.0.2
 AppVersion=1.0.2
 AppPublisher=Mitja Ševerkar <mitja@severkar.eu>
 AppPublisherURL=mailto:mitja@severkar.eu
-AppSupportURL=https://github.com/mytja/AstroPSU-ASCOM/issues
-AppUpdatesURL=https://github.com/mytja/AstroPSU-ASCOM/releases
+AppSupportURL=https://github.com/mytja/AstroBox-ASCOM/issues
+AppUpdatesURL=https://github.com/mytja/AstroBox-ASCOM/releases
 VersionInfoVersion=1.0.2
 MinVersion=6.1.7601
 DefaultDirName="{cf}\ASCOM\Switch"
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 OutputDir="."
-OutputBaseFilename="AstroPSU Setup"
+OutputBaseFilename="AstroBox Setup"
 Compression=lzma
 SolidCompression=yes
 ; Put there by Platform if Driver Installer Support selected
 WizardImageFile="C:\Program Files (x86)\ASCOM\Platform 6 Developer Components\Installer Generator\Resources\WizardImage.bmp"
-LicenseFile="C:\Users\Mitja\source\repos\AstroPSU-ASCOM\LICENSE.txt"
+LicenseFile="C:\Users\Mitja\source\repos\AstroBox-ASCOM\LICENSE.txt"
 ; {cf}\ASCOM\Uninstall\Switch folder created by Platform, always
-UninstallFilesDir="{cf}\ASCOM\Uninstall\Switch\AstroPSU"
+UninstallFilesDir="{cf}\ASCOM\Uninstall\Switch\AstroBox"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
-Name: "{cf}\ASCOM\Uninstall\Switch\AstroPSU"
+Name: "{cf}\ASCOM\Uninstall\Switch\AstroBox"
 ; TODO: Add subfolders below {app} as needed (e.g. Name: "{app}\MyFolder")
 
 [Files]
-Source: "C:\Users\Mitja\source\repos\AstroPSU-ASCOM\AstroPSU-ASCOM\bin\Release\ASCOM.mytjaAstroPSU.exe"; DestDir: "{app}"
+Source: "C:\Users\Mitja\source\repos\AstroBox-ASCOM\AstroBox-ASCOM\bin\Release\ASCOM.mytjaAstroBox.exe"; DestDir: "{app}"
 ; TODO: Add driver assemblies into the ServedClasses folder
 ; Require a read-me HTML to appear after installation, maybe driver's Help doc
-Source: "C:\Users\Mitja\source\repos\AstroPSU-ASCOM\AstroPSU-ASCOM\README.htm"; DestDir: "{app}"; Flags: isreadme
+Source: "C:\Users\Mitja\source\repos\AstroBox-ASCOM\AstroBox-ASCOM\README.htm"; DestDir: "{app}"; Flags: isreadme
 ; TODO: Add other files needed by your driver here (add subfolders above)
 
 
@@ -45,7 +45,7 @@ Source: "C:\Users\Mitja\source\repos\AstroPSU-ASCOM\AstroPSU-ASCOM\README.htm"; 
 [Run]
 
 ; Only for .NET local-server drivers
-Filename: "{app}\ASCOM.mytjaAstroPSU.exe"; Parameters: "/register"
+Filename: "{app}\ASCOM.mytjaAstroBox.exe"; Parameters: "/register"
 
 
 
@@ -54,7 +54,7 @@ Filename: "{app}\ASCOM.mytjaAstroPSU.exe"; Parameters: "/register"
 ; This helps to give a clean uninstall
 
 ; Only for .NET local-server drivers
-Filename: "{app}\ASCOM.mytjaAstroPSU.exe"; Parameters: "/unregister"
+Filename: "{app}\ASCOM.mytjaAstroBox.exe"; Parameters: "/unregister"
 
 
 

@@ -1,1 +1,1 @@
-# AstroPSU-ASCOM
+# AstroBox-ASCOM

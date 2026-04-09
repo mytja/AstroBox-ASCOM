@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using ASCOM.Simulators;
 using ASCOM.Utilities;
 
-namespace ASCOM.mytjaAstroPSU.Switch
+namespace ASCOM.mytjaAstroBox.Switch
 {
     [ComVisible(false)] // Form not registered for COM!
     public partial class SetupDialogForm : Form

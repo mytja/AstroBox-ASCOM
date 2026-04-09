@@ -1,6 +1,6 @@
-﻿// ASCOM Switch hardware class for mytjaAstroPSU
+﻿// ASCOM Switch hardware class for mytjaAstroBox
 //
-// Description:	 ASCOM driver for AstroPSU Pico - the open source/OSHW basic yet extendable astronomy power supply
+// Description:	 ASCOM driver for AstroBox Pico - the open source/OSHW basic yet extendable astronomy power supply
 //
 // Implements:	ASCOM Switch interface version: 2.0 (I think)
 // Author:		Mitja Ševerkar <mitja@severkar.eu>
@@ -26,14 +26,14 @@ using System.Timers;
 using System.Globalization;
 
 
-namespace ASCOM.mytjaAstroPSU.Switch
+namespace ASCOM.mytjaAstroBox.Switch
 {
     //
     // TODO Replace the not implemented exceptions with code to implement the function or throw the appropriate ASCOM exception.
     //
 
     /// <summary>
-    /// ASCOM Switch hardware class for mytjaAstroPSU.
+    /// ASCOM Switch hardware class for mytjaAstroBox.
     /// </summary>
     [HardwareClass()] // Class attribute flag this as a device hardware class that needs to be disposed by the local server when it exits.
     internal static class SwitchHardware
@@ -55,7 +55,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
         internal static string comPortOverride = comPortDefault;
 
         private static string DriverProgId = ""; // ASCOM DeviceID (COM ProgID) for this driver, the value is set by the driver's class initialiser.
-        private static string DriverDescription = "ASCOM driver for AstroPSU Pico - basic yet extensible OSHW astronomy power supply"; // The value is set by the driver's class initialiser.
+        private static string DriverDescription = "ASCOM driver for AstroBox Pico - basic yet extensible OSHW astronomy power supply"; // The value is set by the driver's class initialiser.
         internal static string comPort; // COM port name (if required)
         private static bool connectedState; // Local server's connected state
         private static bool runOnce = false; // Flag to enable "one-off" activities only to run once.
@@ -79,7 +79,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
             {
                 // Create the hardware trace logger in the static initialiser.
                 // All other initialisation should go in the InitialiseHardware method.
-                tl = new TraceLogger("", "mytjaAstroPSU.Hardware");
+                tl = new TraceLogger("", "mytjaAstroBox.Hardware");
 
                 // DriverProgId has to be set here because it used by ReadProfile to get the TraceState flag.
                 DriverProgId = Switch.DriverProgId; // Get this device's ProgID so that it can be used to read the Profile configuration values
@@ -92,7 +92,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
             catch (Exception ex)
             {
                 try { LogMessage("SwitchHardware", $"Initialisation exception: {ex}"); } catch { }
-                MessageBox.Show($"{ex.Message}", "Exception creating ASCOM.mytjaAstroPSU.Switch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{ex.Message}", "Exception creating ASCOM.mytjaAstroBox.Switch", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw;
             }
         }
@@ -503,7 +503,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
         {
             get
             {
-                string name = "AstroPSU";
+                string name = "AstroBox";
                 LogMessage("Name Get", name);
                 return name;
             }
@@ -1000,7 +1000,7 @@ namespace ASCOM.mytjaAstroPSU.Switch
                         continue;
                     }
                     LogMessage("DetectCOMPort", $"Response: {response}");
-                    if (response.StartsWith("AstroPSU-Pico"))
+                    if (response.StartsWith("AstroBox-Pico"))
                     {
                         success = true;
                         break;

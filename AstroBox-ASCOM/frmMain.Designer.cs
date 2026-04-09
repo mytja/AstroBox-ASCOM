@@ -49,7 +49,7 @@ namespace ASCOM.LocalServer
 			this.Controls.Add(this.label1);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.Name = "frmMain";
-			this.Text = "ASCOM.mytjaAstroPSU.Switch Driver Server";
+			this.Text = "ASCOM.mytjaAstroBox.Switch Driver Server";
 			this.ResumeLayout(false);
 
 		}
