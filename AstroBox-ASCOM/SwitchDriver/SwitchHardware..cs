@@ -1,6 +1,6 @@
 ﻿// ASCOM Switch hardware class for mytjaAstroBox
 //
-// Description:	 ASCOM driver for AstroBox Pico - the open source/OSHW basic yet extendable astronomy power supply
+// Description:	 ASCOM driver for Event Horizon AstroBox - a powerful OSHW astronomy power management hub
 //
 // Implements:	ASCOM Switch interface version: 2.0 (I think)
 // Author:		Mitja Ševerkar <mitja@severkar.eu>
@@ -55,7 +55,7 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static string comPortOverride = comPortDefault;
 
         private static string DriverProgId = ""; // ASCOM DeviceID (COM ProgID) for this driver, the value is set by the driver's class initialiser.
-        private static string DriverDescription = "ASCOM driver for AstroBox Pico - basic yet extensible OSHW astronomy power supply"; // The value is set by the driver's class initialiser.
+        private static string DriverDescription = "ASCOM driver for Event Horizon AstroBox - a powerful OSHW astronomy power management hub"; // The value is set by the driver's class initialiser.
         internal static string comPort; // COM port name (if required)
         private static bool connectedState; // Local server's connected state
         private static bool runOnce = false; // Flag to enable "one-off" activities only to run once.
@@ -334,13 +334,20 @@ namespace ASCOM.mytjaAstroBox.Switch
                             switches[id].Value = 0.0;
                             continue;
                         }
+                        if (switches[id].InternalID == "DC1_VOLTAGE")
+                        {
+                            objSerial.Transmit($"VGET\n"); // TODO: vget komanda?
+                            switches[id].Value = int.Parse(objSerial.ReceiveTerminated("\n").Trim());
+                            switches[id].InSync = true;
+                            continue;
+                        }
                         if (switches[id].InternalID == "AUTODEW") continue;
                         if (!switches[id].InternalID.StartsWith("DEW") || switches[id].InternalID.Contains("_"))
                         {
                             continue;
                         }
                         objSerial.Transmit($"PWMGET;{switches[id].InternalID}\n");
-                        switches[id].Value = ((double)int.Parse(objSerial.ReceiveTerminated("\n").Trim()) / 65535.0) * 100.0;
+                        switches[id].Value = ((double)int.Parse(objSerial.ReceiveTerminated("\n").Trim()) / 65535.0) * 100.0; // TODO: resolution of esp32-s3
                         switches[id].InSync = true;
                     }
 
@@ -351,8 +358,8 @@ namespace ASCOM.mytjaAstroBox.Switch
                             switches[id].Value = 0.0;
                             continue;
                         }
-                        if (!(switches[id].InternalID.StartsWith("DC") || switches[id].InternalID == "AUTODEW") || switches[id].InternalID.Contains("_"))
-                        {
+                        if (!(switches[id].InternalID.StartsWith("DC") || switches[id].InternalID.StartsWith("UH") || switches[id].InternalID == "AUTODEW") || switches[id].InternalID.Contains("_"))
+                        { // TODO: STATEGET ne podpira UH-jev
                             continue;
                         }
                         objSerial.Transmit($"STATEGET;{switches[id].InternalID}\n");
@@ -876,6 +883,7 @@ namespace ASCOM.mytjaAstroBox.Switch
         {
             List<LocalSwitch > switches = new List<LocalSwitch>();
             switches.Add(new LocalSwitch("DC1", "DC1", true) { Description = "DC1 switch" });
+            switches.Add(new LocalSwitch("DC1 Voltage [mV]", "DC1_VOLTAGE", false, 25_000, 2000, 100, 13_000, true, false) { Description = "Boost converter output voltage for DC1 in millivolts; from 2.000mV to 25.000mV" });
             switches.Add(new LocalSwitch("DC2", "DC2", true) { Description = "DC2 switch" });
             switches.Add(new LocalSwitch("DC3", "DC3", true) { Description = "DC3 switch" });
             switches.Add(new LocalSwitch("DC4", "DC4", true) { Description = "DC4 switch" });
@@ -883,6 +891,12 @@ namespace ASCOM.mytjaAstroBox.Switch
             switches.Add(new LocalSwitch("DEW1 [%]", "DEW1", true, 100, 0, 0.01, 0, true, true) { Description = "Dew heater 1; adjustable PWM output; from 0 to 100" });
             switches.Add(new LocalSwitch("DEW2 [%]", "DEW2", true, 100, 0, 0.01, 0, true, true) { Description = "Dew heater 2; adjustable PWM output; from 0 to 100" });
             switches.Add(new LocalSwitch("DEW3 [%]", "DEW3", true, 100, 0, 0.01, 0, true, true) { Description = "Dew heater 3; adjustable PWM output; from 0 to 100" });
+            switches.Add(new LocalSwitch("UH1", "UH1", true) { Description = "USB hub 1" });
+            switches.Add(new LocalSwitch("UH2", "UH2", true) { Description = "USB hub 2" });
+            switches.Add(new LocalSwitch("UH3", "UH3", true) { Description = "USB hub 3" });
+            switches.Add(new LocalSwitch("UH4", "UH4", true) { Description = "USB hub 4" });
+            switches.Add(new LocalSwitch("UH5", "UH5", true) { Description = "USB hub 5" });
+            switches.Add(new LocalSwitch("UH6", "UH6", true) { Description = "USB hub 6" });
             switches.Add(new LocalSwitch("Auto-dew", "AUTODEW", false) { Description = "Turns on or off the auto-dew functionality." });
             switches.Add(new LocalSwitch("Input Voltage [V]", "INPUT_VOLTAGE", false, 16.0, 0.0, 0.01, 0.0, false, true) { Description = "Generic Power switch" });
             switches.Add(new LocalSwitch("Input Current [A]", "INPUT_CURRENT", false, 30.0, 0.0, 0.01, 0.0, false, true));
@@ -900,7 +914,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             switches.Add(new LocalSwitch("Temperature (SHT1) [°C]", "SHT3X1_TEMP", true, 60.0, -40.0, 0.1, 0.0, false, true));
             switches.Add(new LocalSwitch("Temperature (SHT2) [°C]", "SHT3X2_TEMP", true, 60.0, -40.0, 0.1, 0.0, false, true));
             switches.Add(new LocalSwitch("Temperature (SHT3) [°C]", "SHT3X3_TEMP", true, 60.0, -40.0, 0.1, 0.0, false, true));
-            switches.Add(new LocalSwitch("CPU Temperature (RP2040) [°C]", "CPU_TEMP", true, 80.0, -40.0, 0.1, 0.0, false, true));
+            switches.Add(new LocalSwitch("CPU Temperature (ESP32-S3) [°C]", "CPU_TEMP", true, 80.0, -40.0, 0.1, 0.0, false, true));
             switches.Add(new LocalSwitch("Humidity (SHT1) [%]", "SHT3X1_HUM", true, 100.0, 0.0, 0.1, 0.0, false, true));
             switches.Add(new LocalSwitch("Humidity (SHT2) [%]", "SHT3X2_HUM", true, 100.0, 0.0, 0.1, 0.0, false, true));
             switches.Add(new LocalSwitch("Humidity (SHT3) [%]", "SHT3X3_HUM", true, 100.0, 0.0, 0.1, 0.0, false, true));
