@@ -537,7 +537,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             try
             {
                 CheckConnected("GetSwitchName");
-                LogMessage("GetSwitchName", $"Calling method.");
+                //LogMessage("GetSwitchName", $"Calling method.");
                 string switchName = SwitchHardware.GetSwitchName(id);
                 LogMessage("GetSwitchName", switchName.ToString());
                 return switchName;
@@ -559,7 +559,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             try
             {
                 CheckConnected("SetSwitchName");
-                LogMessage("SetSwitchName", $"Calling method.");
+                //LogMessage("SetSwitchName", $"Calling method.");
                 SwitchHardware.SetSwitchName(id, name);
                 LogMessage("SetSwitchName", $"Completed.");
             }
@@ -583,7 +583,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             try
             {
                 CheckConnected("GetSwitchDescription");
-                LogMessage("GetSwitchDescription", $"Calling method.");
+                //LogMessage("GetSwitchDescription", $"Calling method.");
                 string switchDescription = SwitchHardware.GetSwitchDescription(id);
                 LogMessage("GetSwitchDescription", switchDescription.ToString());
                 return switchDescription;
@@ -608,7 +608,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             try
             {
                 CheckConnected("CanWrite");
-                LogMessage("CanWrite", $"Calling method.");
+                //LogMessage("CanWrite", $"Calling method.");
                 bool canWrite = SwitchHardware.CanWrite(id);
                 LogMessage("CanWrite", canWrite.ToString());
                 return canWrite;

@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using System.Media;
 using System.Timers;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 
 namespace ASCOM.mytjaAstroBox.Switch
@@ -44,7 +45,7 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static string comPortProfileName = "COM Port";
         internal static string comPortDefault = "COM1";
         internal static string traceStateProfileName = "Trace Level";
-        internal static string traceStateDefault = "false";
+        internal static string traceStateDefault = "true";
         internal static bool showGps = true;
 
         const bool ENABLE_GPS = true;
@@ -53,6 +54,7 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static bool autoDetectComPort = Convert.ToBoolean(autoDetectComPortDefault);
         //internal static bool autoDetectComPort = false;
         internal static string comPortOverride = comPortDefault;
+        private const string DefaultDriverProgId = "ASCOM.mytjaAstroBox.Switch";
 
         private static string DriverProgId = ""; // ASCOM DeviceID (COM ProgID) for this driver, the value is set by the driver's class initialiser.
         private static string DriverDescription = "ASCOM driver for Event Horizon AstroBox - a powerful OSHW astronomy power management hub"; // The value is set by the driver's class initialiser.
@@ -80,9 +82,10 @@ namespace ASCOM.mytjaAstroBox.Switch
                 // Create the hardware trace logger in the static initialiser.
                 // All other initialisation should go in the InitialiseHardware method.
                 tl = new TraceLogger("", "mytjaAstroBox.Hardware");
+                tl.Enabled = true;
 
                 // DriverProgId has to be set here because it used by ReadProfile to get the TraceState flag.
-                DriverProgId = Switch.DriverProgId; // Get this device's ProgID so that it can be used to read the Profile configuration values
+                DriverProgId = ResolveDriverProgId(); // Get this device's ProgID so that it can be used to read the Profile configuration values
 
                 // ReadProfile has to go here before anything is written to the log because it loads the TraceLogger enable / disable state.
                 ReadProfile(); // Read device configuration from the ASCOM Profile store, including the trace state
@@ -725,6 +728,15 @@ namespace ASCOM.mytjaAstroBox.Switch
                 SetSwitch(id, value == 1.0);
                 return;
             }
+            if (switches[id].InternalID == "DC1_VOLTAGE")
+            {
+                Send($"VSET;{(int)value}\n");
+                if (objSerial.ReceiveTerminated("\n").Trim() == "OK")
+                {
+                    switches[id].Value = value;
+                }
+                return;
+            }
             //mutex.WaitOne();
             string msg = $"PWMSET;{switches[id].InternalID};{Math.Round(((double)value / 100.0) * 65535)}\n";
             Send(msg);
@@ -813,11 +825,14 @@ namespace ASCOM.mytjaAstroBox.Switch
         /// </summary>
         internal static void ReadProfile()
         {
+            DriverProgId = ResolveDriverProgId();
+
             using (Profile driverProfile = new Profile())
             {
                 LogMessage("ReadProfile", "Reading profile...");
                 driverProfile.DeviceType = "Switch";
-                tl.Enabled = Convert.ToBoolean(driverProfile.GetValue(DriverProgId, traceStateProfileName, string.Empty, traceStateDefault));
+                Convert.ToBoolean(driverProfile.GetValue(DriverProgId, traceStateProfileName, string.Empty, traceStateDefault));
+                tl.Enabled = true;
                 comPort = driverProfile.GetValue(DriverProgId, comPortProfileName, string.Empty, comPortDefault);
                 showGps = bool.Parse(driverProfile.GetValue(DriverProgId, "gps_show", string.Empty, "true"));
 
@@ -848,7 +863,11 @@ namespace ASCOM.mytjaAstroBox.Switch
                     if (!hide) switches.Add(allSwitches[i]);
                 }
                 numSwitch = (short)switches.Count;
-
+                for (int i = 0; i < numSwitch; i++)
+                {
+                    if (!switches[i].RegularFetch) continue;
+                    LogMessage("ReadProfile", $"Added switch {switches[i].InternalID}");
+                }
             }
         }
 
@@ -857,10 +876,12 @@ namespace ASCOM.mytjaAstroBox.Switch
         /// </summary>
         internal static void WriteProfile()
         {
+            DriverProgId = ResolveDriverProgId();
+
             using (Profile driverProfile = new Profile())
             {
                 driverProfile.DeviceType = "Switch";
-                driverProfile.WriteValue(DriverProgId, traceStateProfileName, tl.Enabled.ToString());
+                driverProfile.WriteValue(DriverProgId, traceStateProfileName, "true");
                 driverProfile.WriteValue(DriverProgId, comPortProfileName, comPort.ToString());
                 for (int i = 0; i < allSwitches.Count; i++) {
                     if (allSwitches[i].IsCommand)
@@ -1014,7 +1035,7 @@ namespace ASCOM.mytjaAstroBox.Switch
                         continue;
                     }
                     LogMessage("DetectCOMPort", $"Response: {response}");
-                    if (response.StartsWith("AstroBox-Pico"))
+                    if (response.StartsWith("AstroBox"))
                     {
                         success = true;
                         break;
@@ -1054,6 +1075,22 @@ namespace ASCOM.mytjaAstroBox.Switch
         {
             var msg = string.Format(message, args);
             LogMessage(identifier, msg);
+        }
+
+        private static string ResolveDriverProgId()
+        {
+            if (!string.IsNullOrWhiteSpace(Switch.DriverProgId))
+            {
+                return Switch.DriverProgId;
+            }
+
+            var progIdAttribute = Attribute.GetCustomAttribute(typeof(Switch), typeof(ProgIdAttribute)) as ProgIdAttribute;
+            if (progIdAttribute != null && !string.IsNullOrWhiteSpace(progIdAttribute.Value))
+            {
+                return progIdAttribute.Value;
+            }
+
+            return DefaultDriverProgId;
         }
         #endregion
     }
