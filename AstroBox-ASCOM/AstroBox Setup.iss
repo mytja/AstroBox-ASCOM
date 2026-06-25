@@ -4,14 +4,14 @@
 ;
 [Setup]
 AppID={{ecdf1e3b-ae38-496c-953f-5f5181c687b8}
-AppName=ASCOM AstroBox Switch Driver
-AppVerName=ASCOM AstroBox Switch Driver 1.0.2
-AppVersion=1.0.2
+AppName=ASCOM AstroBox Event Horizon Switch Driver
+AppVerName=ASCOM AstroBox Event Horizon Switch Driver 1.0.0-beta1
+AppVersion=1.0.0-beta1
 AppPublisher=Mitja Ševerkar <mitja@severkar.eu>
 AppPublisherURL=mailto:mitja@severkar.eu
 AppSupportURL=https://github.com/mytja/AstroBox-ASCOM/issues
 AppUpdatesURL=https://github.com/mytja/AstroBox-ASCOM/releases
-VersionInfoVersion=1.0.2
+VersionInfoVersion=1.0.0
 MinVersion=6.1.7601
 DefaultDirName="{cf}\ASCOM\Switch"
 DisableDirPage=yes
@@ -21,8 +21,8 @@ OutputBaseFilename="AstroBox Setup"
 Compression=lzma
 SolidCompression=yes
 ; Put there by Platform if Driver Installer Support selected
-WizardImageFile="C:\Program Files (x86)\ASCOM\Platform 6 Developer Components\Installer Generator\Resources\WizardImage.bmp"
-LicenseFile="C:\Users\Mitja\source\repos\AstroBox-ASCOM\LICENSE.txt"
+; WizardImageFile="C:\Program Files (x86)\ASCOM\Platform 6 Developer Components\Installer Generator\Resources\WizardImage.bmp"
+LicenseFile="C:\Users\Mitja\source\repos\mytja\AstroBox-ASCOM\LICENSE.txt"
 ; {cf}\ASCOM\Uninstall\Switch folder created by Platform, always
 UninstallFilesDir="{cf}\ASCOM\Uninstall\Switch\AstroBox"
 
@@ -34,10 +34,10 @@ Name: "{cf}\ASCOM\Uninstall\Switch\AstroBox"
 ; TODO: Add subfolders below {app} as needed (e.g. Name: "{app}\MyFolder")
 
 [Files]
-Source: "C:\Users\Mitja\source\repos\AstroBox-ASCOM\AstroBox-ASCOM\bin\Release\ASCOM.mytjaAstroBox.exe"; DestDir: "{app}"
+Source: "C:\Users\Mitja\source\repos\mytja\AstroBox-ASCOM\AstroBox-ASCOM\bin\Release\ASCOM.mytjaAstroBox.exe"; DestDir: "{app}"
 ; TODO: Add driver assemblies into the ServedClasses folder
 ; Require a read-me HTML to appear after installation, maybe driver's Help doc
-Source: "C:\Users\Mitja\source\repos\AstroBox-ASCOM\AstroBox-ASCOM\README.htm"; DestDir: "{app}"; Flags: isreadme
+Source: "C:\Users\Mitja\source\repos\mytja\AstroBox-ASCOM\AstroBox-ASCOM\README.htm"; DestDir: "{app}"; Flags: isreadme
 ; TODO: Add other files needed by your driver here (add subfolders above)
 
 
