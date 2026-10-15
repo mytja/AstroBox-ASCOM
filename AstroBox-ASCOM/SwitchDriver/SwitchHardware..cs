@@ -350,7 +350,9 @@ namespace ASCOM.mytjaAstroBox.Switch
                             continue;
                         }
                         objSerial.Transmit($"PWMGET;{switches[id].InternalID}\n");
-                        switches[id].Value = ((double)int.Parse(objSerial.ReceiveTerminated("\n").Trim()) / 65535.0) * 100.0; // TODO: resolution of esp32-s3
+                        var recv = objSerial.ReceiveTerminated("\n").Trim();
+                        LogMessage("Connected", $"PWMGET;{switches[id].InternalID} value {recv}");
+                        switches[id].Value = ((double)int.Parse(recv) / 16384.0) * 100.0;
                         switches[id].InSync = true;
                     }
 
@@ -738,7 +740,7 @@ namespace ASCOM.mytjaAstroBox.Switch
                 return;
             }
             //mutex.WaitOne();
-            string msg = $"PWMSET;{switches[id].InternalID};{Math.Round(((double)value / 100.0) * 65535)}\n";
+            string msg = $"PWMSET;{switches[id].InternalID};{Math.Round(((double)value / 100.0) * 16384)}\n";
             Send(msg);
             if (objSerial.ReceiveTerminated("\n").Trim() == "OK")
             {
