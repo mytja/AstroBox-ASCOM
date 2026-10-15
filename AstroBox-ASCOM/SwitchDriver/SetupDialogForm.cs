@@ -94,9 +94,14 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "SHT3X2_HUM") SwitchHardware.allSwitches[i].Name = sht2HumName.Text;
                 else if (id == "SHT3X3_HUM") SwitchHardware.allSwitches[i].Name = sht3HumName.Text;
                 else if (id == "DEW_POINT") SwitchHardware.allSwitches[i].Name = dewPointName.Text;
-                else if (id == "GYRO_X") SwitchHardware.allSwitches[i].Name = gyroXName.Text;
-                else if (id == "GYRO_Y") SwitchHardware.allSwitches[i].Name = gyroYName.Text;
+                else if (id == "ROLL") SwitchHardware.allSwitches[i].Name = rollName.Text;
+                else if (id == "YAW") SwitchHardware.allSwitches[i].Name = yawName.Text;
+                else if (id == "PITCH") SwitchHardware.allSwitches[i].Name = pitchName.Text;
                 else if (id == "CPU_TEMP") SwitchHardware.allSwitches[i].Name = cpuTempName.Text;
+                else if (id == "BMP180_1_TEMP") SwitchHardware.allSwitches[i].Name = bmp1801TempName.Text;
+                else if (id == "BMP180_2_TEMP") SwitchHardware.allSwitches[i].Name = bmp1802TempName.Text;
+                else if (id == "BMP180_1_PRESSURE") SwitchHardware.allSwitches[i].Name = bmp1801PressureName.Text;
+                else if (id == "BMP180_2_PRESSURE") SwitchHardware.allSwitches[i].Name = bmp1802PressureName.Text;
                 //else if (id == "GYRO_Z") SwitchHardware.allSwitches[i].Name = gyroZName.Text;
 
                 if (id == "DC1") SwitchHardware.allSwitches[i].Hide = dc1Hide.Checked;
@@ -125,13 +130,18 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "SHT3X2_HUM") SwitchHardware.allSwitches[i].Hide = sht2HumHide.Checked;
                 else if (id == "SHT3X3_HUM") SwitchHardware.allSwitches[i].Hide = sht3HumHide.Checked;
                 else if (id == "DEW_POINT") SwitchHardware.allSwitches[i].Hide = dewPointHide.Checked;
-                else if (id == "GYRO_X") SwitchHardware.allSwitches[i].Hide = gyroXHide.Checked;
-                else if (id == "GYRO_Y") SwitchHardware.allSwitches[i].Hide = gyroYHide.Checked;
+                else if (id == "ROLL") SwitchHardware.allSwitches[i].Hide = rollHide.Checked;
+                else if (id == "YAW") SwitchHardware.allSwitches[i].Hide = yawHide.Checked;
+                else if (id == "PITCH") SwitchHardware.allSwitches[i].Hide = pitchHide.Checked;
                 else if (id == "CPU_TEMP") SwitchHardware.allSwitches[i].Hide = cpuTempHide.Checked;
                 else if (id == "ZERO") SwitchHardware.allSwitches[i].Hide = zeroButtonHide.Checked;
                 else if (id == "BOOTSEL") SwitchHardware.allSwitches[i].Hide = bootselButtonHide.Checked;
                 else if (id == "REBOOT") SwitchHardware.allSwitches[i].Hide = rebootButtonHide.Checked;
                 else if (id == "RESET_CORE") SwitchHardware.allSwitches[i].Hide = resetCoreButtonHide.Checked;
+                else if (id == "BMP180_1_TEMP") SwitchHardware.allSwitches[i].Hide = bmp1801TempHide.Checked;
+                else if (id == "BMP180_2_TEMP") SwitchHardware.allSwitches[i].Hide = bmp1802TempHide.Checked;
+                else if (id == "BMP180_1_PRESSURE") SwitchHardware.allSwitches[i].Hide = bmp1801PressureHide.Checked;
+                else if (id == "BMP180_2_PRESSURE") SwitchHardware.allSwitches[i].Hide = bmp1802PressureHide.Checked;
                 //else if (id == "GYRO_Z") SwitchHardware.allSwitches[i].Hide = gyroZHide.Checked;
 
                 if (!SwitchHardware.allSwitches[i].Hide) SwitchHardware.switches.Add(SwitchHardware.allSwitches[i]);
@@ -241,9 +251,14 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "SHT3X2_HUM") sht2HumName.Text = value;
                 else if (id == "SHT3X3_HUM") sht3HumName.Text = value;
                 else if (id == "DEW_POINT") dewPointName.Text = value;
-                else if (id == "GYRO_X") gyroXName.Text = value;
-                else if (id == "GYRO_Y") gyroYName.Text = value;
+                else if (id == "ROLL") rollName.Text = value;
+                else if (id == "YAW") yawName.Text = value;
+                else if (id == "PITCH") pitchName.Text = value;
                 else if (id == "CPU_TEMP") cpuTempName.Text = value;
+                else if (id == "BMP180_1_TEMP") bmp1801TempName.Text = value;
+                else if (id == "BMP180_2_TEMP") bmp1802TempName.Text = value;
+                else if (id == "BMP180_1_PRESSURE") bmp1801PressureName.Text = value;
+                else if (id == "BMP180_2_PRESSURE") bmp1802PressureName.Text = value;
                 //else if (id == "GYRO_Z") gyroZName.Text = value;
 
                 if (id == "DC1") dc1Hide.Checked = hide;
@@ -271,13 +286,18 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "SHT3X2_HUM") sht2HumHide.Checked = hide;
                 else if (id == "SHT3X3_HUM") sht3HumHide.Checked = hide;
                 else if (id == "DEW_POINT") dewPointHide.Checked = hide;
-                else if (id == "GYRO_X") gyroXHide.Checked = hide;
-                else if (id == "GYRO_Y") gyroYHide.Checked = hide;
+                else if (id == "ROLL") rollHide.Checked = hide;
+                else if (id == "YAW") yawHide.Checked = hide;
+                else if (id == "PITCH") pitchHide.Checked = hide;
                 else if (id == "CPU_TEMP") cpuTempHide.Checked = hide;
                 else if (id == "ZERO") zeroButtonHide.Checked = hide;
                 else if (id == "BOOTSEL") bootselButtonHide.Checked = hide;
                 else if (id == "REBOOT") rebootButtonHide.Checked = hide;
                 else if (id == "RESET_CORE") resetCoreButtonHide.Checked = hide;
+                else if (id == "BMP180_1_TEMP") bmp1801TempHide.Checked = hide;
+                else if (id == "BMP180_2_TEMP") bmp1802TempHide.Checked = hide;
+                else if (id == "BMP180_1_PRESSURE") bmp1801PressureHide.Checked = hide;
+                else if (id == "BMP180_2_PRESSURE") bmp1802PressureHide.Checked = hide;
                 //else if (id == "GYRO_Z") gyroZHide.Checked = hide;
             }
 

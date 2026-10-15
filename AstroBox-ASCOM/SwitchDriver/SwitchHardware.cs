@@ -948,8 +948,13 @@ namespace ASCOM.mytjaAstroBox.Switch
             switches.Add(new LocalSwitch("GPS Longitude", "GPS1_LONGITUDE", false, 180, -180, 0.0001, 0.0, false, ENABLE_GPS));
             switches.Add(new LocalSwitch("GPS Elevation [m]", "GPS1_ELEVATION", false, 7000, -20, 0.001, 0.0, false, ENABLE_GPS));
             switches.Add(new LocalSwitch("GPS Satellite Count", "GPS1_SATELLITE_COUNT", false, 30, 0, 1, 0, false, ENABLE_GPS));
-            switches.Add(new LocalSwitch("Gyro X", "GYRO_X", true, -360, 360, 0.0001, 0.0, false, true));
-            switches.Add(new LocalSwitch("Gyro Y", "GYRO_Y", true, -360, 360, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Roll", "ROLL", true, 360, -360, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Pitch", "PITCH", true, 360, -360, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Yaw", "YAW", true, 360, -360, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Temperature (BMP180 1) [°C]", "BMP180_1_TEMP", true, 60.0, -40.0, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Temperature (BMP180 2) [°C]", "BMP180_2_TEMP", true, 60.0, -40.0, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Pressure (BMP180 1) [Pa]", "BMP180_1_PRESSURE", true, 150_000, 0, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Pressure (BMP180 2) [Pa]", "BMP180_2_PRESSURE", true, 150_000, 0, 0.0001, 0.0, false, true));
             switches.Add(new LocalSwitch("Zero", "ZERO", false) { Description = "Upon clicking this switch, the power supply will zero the current sensors. Proceed with caution.", IsCommand = true });
             switches.Add(new LocalSwitch("BOOTSEL Mode", "BOOTSEL", false) { Description = "Upon clicking this switch, the power supply will reboot into BOOTSEL mode. Proceed with caution. This command WILL turn off all the connected devices.", IsCommand = true });
             switches.Add(new LocalSwitch("Reboot", "REBOOT", false) { Description = "Upon clicking this switch, the power supply will reboot (into normal mode). Proceed with caution. This command WILL turn off all the connected devices.", IsCommand = true });

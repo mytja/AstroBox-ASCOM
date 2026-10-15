@@ -79,7 +79,7 @@
     <Compile Include="ClassFactory.cs" />
     <Compile Include="SwitchDriver\LocalSwitch.cs" />
     <Compile Include="SwitchDriver\SwitchDriver.cs" />
-    <Compile Include="SwitchDriver\SwitchHardware..cs" />
+    <Compile Include="SwitchDriver\SwitchHardware.cs" />
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
