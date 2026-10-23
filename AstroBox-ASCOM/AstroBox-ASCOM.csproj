@@ -77,6 +77,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClassFactory.cs" />
+    <Compile Include="SwitchDriver\AstroBoxProtocol.cs" />
+    <Compile Include="SwitchDriver\DeviceLogForm.cs" />
     <Compile Include="SwitchDriver\LocalSwitch.cs" />
     <Compile Include="SwitchDriver\SwitchDriver.cs" />
     <Compile Include="SwitchDriver\SwitchHardware.cs" />

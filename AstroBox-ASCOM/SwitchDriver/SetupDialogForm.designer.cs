@@ -31,6 +31,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SetupDialogForm));
             this.cmdOK = new System.Windows.Forms.Button();
             this.cmdCancel = new System.Windows.Forms.Button();
+            this.cmdDeviceLog = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.picASCOM = new System.Windows.Forms.PictureBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -170,6 +171,18 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.cmdCancel.Text = "Cancel";
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.CmdCancel_Click);
+            //
+            // cmdDeviceLog
+            //
+            this.cmdDeviceLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDeviceLog.Location = new System.Drawing.Point(850, 949);
+            this.cmdDeviceLog.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.cmdDeviceLog.Name = "cmdDeviceLog";
+            this.cmdDeviceLog.Size = new System.Drawing.Size(200, 39);
+            this.cmdDeviceLog.TabIndex = 2;
+            this.cmdDeviceLog.Text = "Device Log...";
+            this.cmdDeviceLog.UseVisualStyleBackColor = true;
+            this.cmdDeviceLog.Click += new System.EventHandler(this.CmdDeviceLog_Click);
             // 
             // label1
             // 
@@ -1343,6 +1356,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.Controls.Add(this.label2);
             this.Controls.Add(this.picASCOM);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.cmdDeviceLog);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.cmdOK);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -1364,6 +1378,7 @@ namespace ASCOM.mytjaAstroBox.Switch
 
         private System.Windows.Forms.Button cmdOK;
         private System.Windows.Forms.Button cmdCancel;
+        private System.Windows.Forms.Button cmdDeviceLog;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox picASCOM;
         private System.Windows.Forms.Label label2;

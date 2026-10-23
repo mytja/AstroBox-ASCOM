@@ -17,7 +17,6 @@ using ASCOM.Simulators;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Runtime.Remoting.Messaging;
-using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +24,7 @@ using System.Media;
 using System.Timers;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 
 
 namespace ASCOM.mytjaAstroBox.Switch
@@ -66,11 +66,31 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static TraceLogger tl; // Local server's trace logger object for diagnostic log with information that you specify
 
         //internal static Mutex mutex;
-        internal static Task task;
-        internal static CancellationTokenSource cts = new CancellationTokenSource();
 
         // The object used to communicate with the device using serial port communication.
         private static Serial objSerial;
+
+        // Asynchronous ABP/2 client. It owns the receive side of the serial
+        // port, so pushed telemetry and command responses cannot be mixed up.
+        private static AstroBoxProtocol protocol;
+
+        private static readonly object switchLock = new object();
+        private static readonly Dictionary<string, LocalSwitch> switchByInternalId =
+            new Dictionary<string, LocalSwitch>(StringComparer.Ordinal);
+        private static readonly ManualResetEventSlim firstTelemetry =
+            new ManualResetEventSlim(false);
+
+        // Warning/error/info history received from the device. It is kept for
+        // the lifetime of the driver process and de-duplicated by boot id and
+        // device log sequence, so replaying the on-device ring after a
+        // reconnect does not create duplicate rows.
+        private const int DeviceLogHistoryLimit = 2000;
+        private static readonly object deviceLogLock = new object();
+        private static readonly List<DeviceLogEntry> deviceLog =
+            new List<DeviceLogEntry>();
+        private static readonly Dictionary<string, bool> deviceLogKeys =
+            new Dictionary<string, bool>(StringComparer.Ordinal);
+        internal static event EventHandler DeviceLogChanged;
 
         /// <summary>
         /// Initializes a new instance of the device Hardware class.
@@ -261,6 +281,33 @@ namespace ASCOM.mytjaAstroBox.Switch
         {
             try { LogMessage("Dispose", $"Disposing of assets and closing down."); } catch { }
 
+            // Stop the reader before disposing the trace logger: the reader may
+            // still report a serial error while it is shutting down.
+            try
+            {
+                if (protocol != null)
+                {
+                    protocol.TelemetryReceived -= OnTelemetry;
+                    protocol.ProtocolMessage -= OnProtocolMessage;
+                    protocol.DeviceLogReceived -= OnDeviceLog;
+                    protocol.Stop();
+                    protocol.Dispose();
+                    protocol = null;
+                }
+            }
+            catch { }
+
+            try
+            {
+                if (objSerial != null)
+                {
+                    objSerial.Connected = false;
+                    objSerial.Dispose();
+                    objSerial = null;
+                }
+            }
+            catch { }
+
             try
             {
                 // Clean up the trace logger and utility objects
@@ -281,24 +328,6 @@ namespace ASCOM.mytjaAstroBox.Switch
             {
                 astroUtilities.Dispose();
                 astroUtilities = null;
-            }
-            catch { }
-
-            try
-            {
-                objSerial.Connected = false;
-            }
-            catch { }
-
-            try
-            {
-                cts.Cancel();
-            }
-            catch { }
-
-            try
-            {
-                task.Dispose();
             }
             catch { }
         }
@@ -330,125 +359,191 @@ namespace ASCOM.mytjaAstroBox.Switch
                         throw new ASCOM.NotConnectedException("Failed to connect");
                     }
 
-                    for (int id = 0; id < switches.Count; id++)
+                    try
                     {
-                        if (switches[id].IsCommand)
-                        {
-                            switches[id].Value = 0.0;
-                            continue;
-                        }
-                        if (switches[id].InternalID == "DC1_VOLTAGE")
-                        {
-                            objSerial.Transmit($"VGET\n"); // TODO: vget komanda?
-                            switches[id].Value = int.Parse(objSerial.ReceiveTerminated("\n").Trim());
-                            switches[id].InSync = true;
-                            continue;
-                        }
-                        if (switches[id].InternalID == "AUTODEW") continue;
-                        if (!switches[id].InternalID.StartsWith("DEW") || switches[id].InternalID.Contains("_"))
-                        {
-                            continue;
-                        }
-                        objSerial.Transmit($"PWMGET;{switches[id].InternalID}\n");
-                        var recv = objSerial.ReceiveTerminated("\n").Trim();
-                        LogMessage("Connected", $"PWMGET;{switches[id].InternalID} value {recv}");
-                        switches[id].Value = ((double)int.Parse(recv) / 16384.0) * 100.0;
-                        switches[id].InSync = true;
-                    }
+                        protocol = new AstroBoxProtocol(objSerial);
+                        protocol.ProtocolMessage += OnProtocolMessage;
+                        protocol.TelemetryReceived += OnTelemetry;
+                        protocol.DeviceLogReceived += OnDeviceLog;
+                        firstTelemetry.Reset();
+                        protocol.Start();
 
-                    for (int id = 0; id < switches.Count; id++)
+                        ProtocolResponse info = protocol.Send("FWINFO");
+                        if (!info.Ok)
+                            throw new ASCOM.NotConnectedException("AstroBox rejected FWINFO");
+
+                        double protocolVersion = info.GetValue("PROTO", -1);
+                        if (protocolVersion < 2)
+                            throw new ASCOM.NotConnectedException(
+                                "AstroBox firmware does not support ABP/2");
+
+                        LogMessage("Connected", "Firmware {0}, protocol {1}",
+                                   info.GetString("FWINFO"), protocolVersion);
+
+                        // Replay warnings/errors that happened before the host
+                        // connected. The device answers LOG with E frames and
+                        // then the normal OK response.
+                        try
+                        {
+                            protocol.Send("LOG");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogMessage("Connected", "Device log replay failed: {0}",
+                                       ex.Message);
+                        }
+
+                        // The device pushes the complete state on its own. Wait
+                        // for the first frame instead of polling ADCGET/GET.
+                        if (!firstTelemetry.Wait(3000))
+                            throw new ASCOM.NotConnectedException(
+                                "AstroBox did not send a telemetry frame");
+
+                        connectedState = true;
+                    }
+                    catch
                     {
-                        if (switches[id].IsCommand)
+                        if (protocol != null)
                         {
-                            switches[id].Value = 0.0;
-                            continue;
+                            protocol.TelemetryReceived -= OnTelemetry;
+                            protocol.ProtocolMessage -= OnProtocolMessage;
+                            protocol.DeviceLogReceived -= OnDeviceLog;
+                            try { protocol.Stop(); protocol.Dispose(); } catch { }
+                            protocol = null;
                         }
-                        if (!(switches[id].InternalID.StartsWith("DC") || switches[id].InternalID.StartsWith("UH") || switches[id].InternalID == "AUTODEW") || switches[id].InternalID.Contains("_"))
-                        { // TODO: STATEGET ne podpira UH-jev
-                            continue;
-                        }
-                        objSerial.Transmit($"STATEGET;{switches[id].InternalID}\n");
-                        switches[id].Value = int.Parse(objSerial.ReceiveTerminated("\n").Trim());
-                        switches[id].InSync = true;
+
+                        try { objSerial.Connected = false; objSerial.Dispose(); } catch { }
+                        objSerial = null;
+
+                        connectedState = false;
+                        throw;
                     }
-
-                    /*
-                    for (int id = 0; id < switches.Count; id++)
-                    {
-                        if (!switches[id].InternalID.StartsWith("DC") && !switches[id].InternalID.StartsWith("DEW"))
-                        {
-                            continue;
-                        }
-                        if (switches[id].InternalID.Contains("_"))
-                        {
-                            continue;
-                        }
-                        objSerial.Transmit($"NAMEGET;{switches[id].InternalID}\n");
-                        String name = objSerial.ReceiveTerminated("\n").Trim();
-                        if (name == "")
-                        {
-                            continue;
-                        }
-
-                        switches[id].Name = name;
-                        switches[id].InSync = true;
-                    }
-                    */
-
-                    connectedState = true;
-
-                    //mutex = new Mutex();
-
-                    //Task.Run(DataReceived);
-                    //thread1 = new Thread(DataReceived);
-
-                    task = Task.Run(UpdateFrequent);
                 }
                 else
                 {
                     connectedState = false;
+                    firstTelemetry.Reset();
 
                     LogMessage("Connected Set", "Disconnecting from port {0}", comPort);
 
-                    objSerial.Connected = false;
-                    objSerial.Dispose();
-                    objSerial = null;
-                    //thread1.Abort();
+                    if (protocol != null)
+                    {
+                        protocol.TelemetryReceived -= OnTelemetry;
+                        protocol.ProtocolMessage -= OnProtocolMessage;
+                        protocol.DeviceLogReceived -= OnDeviceLog;
+                        try { protocol.Stop(); protocol.Dispose(); } catch { }
+                        protocol = null;
+                    }
+
+                    if (objSerial != null)
+                    {
+                        try { objSerial.Connected = false; objSerial.Dispose(); } catch { }
+                        objSerial = null;
+                    }
                 }
             }
         }
 
-        public async static void UpdateFrequent()
+        private static void OnTelemetry(object sender, TelemetryEventArgs e)
         {
-            while (true)
+            ApplySwitchValues(e.Values);
+            firstTelemetry.Set();
+        }
+
+        private static void OnProtocolMessage(object sender, string message)
+        {
+            LogMessage("Protocol", message);
+        }
+
+        private static void OnDeviceLog(object sender, DeviceLogEntry entry)
+        {
+            if (entry == null)
+                return;
+
+            bool changed = false;
+
+            lock (deviceLogLock)
             {
-                cts.Token.ThrowIfCancellationRequested();
-                await Task.Delay(500);
-                cts.Token.ThrowIfCancellationRequested();
-
-                // Potrebno za Gyro
-                //objSerial.Transmit($"REFRESH_DATA\n");
-                //objSerial.ReceiveTerminated("\n").Trim();
-                //await Task.Delay(1000);
-
-                for (int i = 0; i < switches.Count; i++)
+                if (!deviceLogKeys.ContainsKey(entry.Key))
                 {
-                    if (!switches[i].RegularFetch) continue;
-                    //mutex.WaitOne();
-                    try
+                    deviceLogKeys.Add(entry.Key, true);
+                    deviceLog.Add(entry);
+                    if (deviceLog.Count > DeviceLogHistoryLimit)
                     {
-                        objSerial.Transmit($"ADCGET;{switches[i].InternalID}\n");
-                        int digits = 2;
-                        if (switches[i].InternalID.Contains("GPS")) digits = 5;
-                        // CultureInfo.InvariantCulture je potreben, ker je C# retarded
-                        switches[i].Value = Math.Round(float.Parse(objSerial.ReceiveTerminated("\n").Trim(), CultureInfo.InvariantCulture), digits);
+                        DeviceLogEntry oldest = deviceLog[0];
+                        deviceLog.RemoveAt(0);
+                        deviceLogKeys.Remove(oldest.Key);
                     }
-                    catch (Exception er)
-                    {
-                        if (!objSerial.Connected) throw new NotConnectedException();
-                        LogMessage("SchedPull", $"Scheduled pull failed on {switches[i].InternalID} with exception {er}");
-                    }
-                    //mutex.ReleaseMutex();
+                    changed = true;
+                }
+            }
+
+            if (!changed)
+                return;
+
+            try { LogMessage("DeviceLog", entry.ToString()); } catch { }
+
+            EventHandler handler = DeviceLogChanged;
+            if (handler != null)
+                handler(null, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Returns a snapshot of the warning/error history received from the
+        /// device. The returned list is safe to use after the call.
+        /// </summary>
+        internal static List<DeviceLogEntry> GetDeviceLogSnapshot()
+        {
+            lock (deviceLogLock)
+                return new List<DeviceLogEntry>(deviceLog);
+        }
+
+        /// <summary>
+        /// Formats the device log history for display in the setup dialog.
+        /// </summary>
+        internal static string GetDeviceLogText()
+        {
+            StringBuilder builder = new StringBuilder();
+            lock (deviceLogLock)
+            {
+                for (int i = 0; i < deviceLog.Count; i++)
+                    builder.AppendLine(deviceLog[i].ToString());
+            }
+            return builder.ToString();
+        }
+
+        internal static void ClearDeviceLog()
+        {
+            AstroBoxProtocol active = protocol;
+            if (active != null)
+            {
+                try { active.SendWithTimeout("LOGCLEAR", 2000); }
+                catch { }
+            }
+
+            lock (deviceLogLock)
+            {
+                deviceLog.Clear();
+                deviceLogKeys.Clear();
+            }
+
+            EventHandler handler = DeviceLogChanged;
+            if (handler != null)
+                handler(null, EventArgs.Empty);
+        }
+
+        private static void ApplySwitchValues(IEnumerable<KeyValuePair<string, double>> values)
+        {
+            lock (switchLock)
+            {
+                foreach (KeyValuePair<string, double> value in values)
+                {
+                    LocalSwitch localSwitch;
+                    if (!switchByInternalId.TryGetValue(value.Key, out localSwitch))
+                        continue;
+
+                    localSwitch.Value = value.Value;
+                    localSwitch.InSync = true;
                 }
             }
         }
@@ -525,13 +620,6 @@ namespace ASCOM.mytjaAstroBox.Switch
 
         internal static List<LocalSwitch> allSwitches;
         internal static List<LocalSwitch> switches;
-
-        internal static void Send(string value)
-        {
-            //mut.WaitOne();
-            objSerial.Transmit(value);
-            //mut.ReleaseMutex();
-        }
 
         #region ISwitchV2 Implementation
 
@@ -616,8 +704,12 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static bool GetSwitch(short id)
         {
             Validate("GetSwitch", id);
-            bool t = switches[id].Maximum - switches[id].Value <= switches[id].Value - switches[id].Minimum;
-            LogMessage("GetSwitch", $"Switch bool requested {switches[id].InternalID}: {switches[id].Value} ({t})");
+            double value;
+            lock (switchLock)
+                value = switches[id].Value;
+
+            bool t = switches[id].Maximum - value <= value - switches[id].Minimum;
+            LogMessage("GetSwitch", $"Switch bool requested {switches[id].InternalID}: {value} ({t})");
             // Sends true if Value is closer to maximum than to minimum.
             return t;
         }
@@ -640,23 +732,53 @@ namespace ASCOM.mytjaAstroBox.Switch
             LogMessage("SetSwitch", $"Set switch state {id}");
             //mutex.WaitOne();
 
+            if (protocol == null)
+                throw new ASCOM.NotConnectedException("AstroBox protocol is not connected");
+
             if (switches[id].IsCommand)
             {
-                Send($"{switches[id].InternalID}\n");
-                if (objSerial.ReceiveTerminated("\n").Trim().StartsWith("OK"))
+                ProtocolResponse response =
+                    protocol.SendWithTimeout(switches[id].InternalID, 15000);
+                if (response.Ok)
                 {
-                    switches[id].Value = 1;
+                    lock (switchLock)
+                        switches[id].Value = 1;
                     Thread.Sleep(1000);
-                    switches[id].Value = 0;
+                    lock (switchLock)
+                        switches[id].Value = 0;
+                }
+                else
+                {
+                    LogMessage("SetSwitch",
+                               $"Command {switches[id].InternalID} failed: {response.Status}");
                 }
                 return;
             }
 
-            if (state) Send($"ON;{switches[id].InternalID}\n");
-            else Send($"OFF;{switches[id].InternalID}\n");
-            if (objSerial.ReceiveTerminated("\n").Trim() == "OK")
+            ProtocolResponse setResponse =
+                protocol.Send(state ? "ON" : "OFF", switches[id].InternalID);
+            if (setResponse.Ok)
             {
-                switches[id].Value = state ? 1 : 0;
+                lock (switchLock)
+                {
+                    switches[id].Value = state ? 1 : 0;
+
+                    // Writing a DEW output switches the firmware out of
+                    // auto-dew mode, exactly like the old raw PWM command.
+                    if (switches[id].InternalID.StartsWith("DEW"))
+                    {
+                        for (int i = 0; i < switches.Count; i++)
+                        {
+                            if (switches[i].InternalID != "AUTODEW") continue;
+                            switches[i].Value = 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                LogMessage("SetSwitch",
+                           $"{switches[id].InternalID} failed: {setResponse.Status}");
             }
             //mutex.ReleaseMutex();
         }
@@ -707,8 +829,12 @@ namespace ASCOM.mytjaAstroBox.Switch
         internal static double GetSwitchValue(short id)
         {
             Validate("GetSwitchValue", id);
-            LogMessage("GetSwitchValue", $"Switch value requested {switches[id].InternalID}: {switches[id].Value}");
-            return switches[id].Value;
+            double value;
+            lock (switchLock)
+                value = switches[id].Value;
+
+            LogMessage("GetSwitchValue", $"Switch value requested {switches[id].InternalID}: {value}");
+            return value;
         }
 
         /// <summary>
@@ -730,26 +856,44 @@ namespace ASCOM.mytjaAstroBox.Switch
                 SetSwitch(id, value == 1.0);
                 return;
             }
+
+            if (protocol == null)
+                throw new ASCOM.NotConnectedException("AstroBox protocol is not connected");
+
+            ProtocolResponse response;
             if (switches[id].InternalID == "DC1_VOLTAGE")
             {
-                Send($"VSET;{(int)value}\n");
-                if (objSerial.ReceiveTerminated("\n").Trim() == "OK")
+                response = protocol.Send("SET", "DC1_VOLTAGE",
+                    ((int)value).ToString(CultureInfo.InvariantCulture));
+            }
+            else
+            {
+                // The firmware accepts DEW values as a percentage (0-100),
+                // which is exactly the ASCOM switch range.
+                response = protocol.Send("SET", switches[id].InternalID,
+                    value.ToString("0.####", CultureInfo.InvariantCulture));
+            }
+
+            if (response.Ok)
+            {
+                lock (switchLock)
                 {
                     switches[id].Value = value;
+
+                    if (switches[id].InternalID.StartsWith("DEW"))
+                    {
+                        for (int i = 0; i < switches.Count; i++)
+                        {
+                            if (switches[i].InternalID != "AUTODEW") continue;
+                            switches[i].Value = 0;
+                        }
+                    }
                 }
-                return;
             }
-            //mutex.WaitOne();
-            string msg = $"PWMSET;{switches[id].InternalID};{Math.Round(((double)value / 100.0) * 16384)}\n";
-            Send(msg);
-            if (objSerial.ReceiveTerminated("\n").Trim() == "OK")
+            else
             {
-                switches[id].Value = value;
-            }
-            for (int i = 0; i < switches.Count; i++)
-            {
-                if (switches[i].InternalID != "AUTODEW") continue;
-                switches[i].Value = 0;
+                LogMessage("SetSwitchValue",
+                           $"{switches[id].InternalID} failed: {response.Status}");
             }
             //mutex.ReleaseMutex();
         }
@@ -870,6 +1014,21 @@ namespace ASCOM.mytjaAstroBox.Switch
                     if (!switches[i].RegularFetch) continue;
                     LogMessage("ReadProfile", $"Added switch {switches[i].InternalID}");
                 }
+
+                RebuildSwitchIndex();
+            }
+        }
+
+        internal static void RebuildSwitchIndex()
+        {
+            lock (switchLock)
+            {
+                switchByInternalId.Clear();
+                if (switches == null)
+                    return;
+
+                for (int i = 0; i < switches.Count; i++)
+                    switchByInternalId[switches[i].InternalID] = switches[i];
             }
         }
 
@@ -962,34 +1121,6 @@ namespace ASCOM.mytjaAstroBox.Switch
             return switches;
         }
 
-        /*private static void DataReceived()
-        {
-            LogMessage("DataReceived", "Starting DataReceived thread");
-            while (true)
-            {
-                //mut.WaitOne();
-                var task = Task.Run(() => objSerial.ReceiveTerminated("\n"));
-                if (!task.Wait(TimeSpan.FromMilliseconds(500)))
-                {
-                    //mut.ReleaseMutex();
-                    continue;
-                }
-                //mut.ReleaseMutex();
-                string indata = task.Result;
-                LogMessage("DataReceived", $"Received data: {indata}");
-                string[] msg = indata.Split(';');
-                if (msg[0] == "ON")
-                {
-                    switches[internalIdMap[msg[1]]].Value = 1;
-                }
-                else if (msg[0] == "PWMSET")
-                {
-                    double map = (int.Parse(msg[2]) / 65535) * 100;
-                    switches[internalIdMap[msg[1]]].Value = map;
-                }
-            }
-        }*/
-
         internal static Serial DetectCOMPort()
         {
             LogMessage("DetectCOMPort", $"Serial Ports {String.Join(",", SerialPort.GetPortNames())}");
@@ -1025,27 +1156,32 @@ namespace ASCOM.mytjaAstroBox.Switch
 
                 serial.ClearBuffers();
 
-                // Poll the device (with a short timeout value) until successful,
-                // or until we've reached the retry count limit of 3...
+                // Send a real ABP/2 request and look for its response. The
+                // device also streams telemetry frames, so several lines may
+                // arrive before the response we are waiting for.
                 bool success = false;
-                for (int retries = 3; retries > 0; retries--)
+                for (int retries = 3; retries > 0 && !success; retries--)
                 {
-                    string response = "";
                     try
                     {
-                        serial.Transmit("FWINFO\n");
-                        response = serial.ReceiveTerminated("\n").Trim();
+                        serial.Transmit("C;1;FWINFO\n");
+                        for (int lines = 0; lines < 12; lines++)
+                        {
+                            string response = serial.ReceiveTerminated("\n").Trim();
+                            LogMessage("DetectCOMPort", $"Response: {response}");
+
+                            if (response.StartsWith("R;1;OK", StringComparison.Ordinal))
+                            {
+                                success = true;
+                                break;
+                            }
+                            if (response.StartsWith("R;1;ERR", StringComparison.Ordinal))
+                                break;
+                        }
                     }
                     catch (Exception e)
                     {
                         LogMessage("DetectCOMPort", $"Exception thrown on Serial transmit {e}");
-                        continue;
-                    }
-                    LogMessage("DetectCOMPort", $"Response: {response}");
-                    if (response.StartsWith("AstroBox"))
-                    {
-                        success = true;
-                        break;
                     }
                 }
 

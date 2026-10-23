@@ -158,6 +158,8 @@ namespace ASCOM.mytjaAstroBox.Switch
                 */
             }
 
+            SwitchHardware.RebuildSwitchIndex();
+
             /*
             try
             {
@@ -175,6 +177,14 @@ namespace ASCOM.mytjaAstroBox.Switch
         private void CmdCancel_Click(object sender, EventArgs e) // Cancel button event handler
         {
             Close();
+        }
+
+        private void CmdDeviceLog_Click(object sender, EventArgs e)
+        {
+            using (DeviceLogForm form = new DeviceLogForm())
+            {
+                form.ShowDialog(this);
+            }
         }
 
         private void BrowseToAscom(object sender, EventArgs e) // Click on ASCOM logo event handler
