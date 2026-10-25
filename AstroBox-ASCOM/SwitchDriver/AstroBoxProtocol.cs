@@ -60,24 +60,63 @@ namespace ASCOM.mytjaAstroBox.Switch
     internal sealed class DeviceLogEntry
     {
         public DeviceLogEntry(long bootId, long sequence, string severity,
-                              long uptimeMs, string source, string message)
+                              long uptimeMs, long unixTimeMs, string source,
+                              string message)
         {
             BootId = bootId;
             Sequence = sequence;
             Severity = severity ?? "INFO";
             UptimeMs = uptimeMs;
+            UnixTimeMilliseconds = unixTimeMs;
             Source = source ?? "SYSTEM";
             Message = message ?? string.Empty;
-            Timestamp = DateTime.Now;
+
+            // The device timestamps entries with its own clock: GPS time when
+            // the receiver has a fix, otherwise the host time pushed with the
+            // TIME command. Only when it has no clock at all (0) do we fall
+            // back to the local receive time.
+            DateTime timestamp;
+            if (!TryFromUnixMilliseconds(unixTimeMs, out timestamp))
+                timestamp = DateTime.Now;
+            Timestamp = timestamp;
         }
 
         public long BootId { get; private set; }
         public long Sequence { get; private set; }
         public string Severity { get; private set; }
         public long UptimeMs { get; private set; }
+        public long UnixTimeMilliseconds { get; private set; }
         public string Source { get; private set; }
         public string Message { get; private set; }
         public DateTime Timestamp { get; private set; }
+
+        /// <summary>
+        /// True when the timestamp came from the device clock rather than from
+        /// the moment the host received the frame.
+        /// </summary>
+        public bool HasDeviceTimestamp
+        {
+            get { return UnixTimeMilliseconds > 0; }
+        }
+
+        private static bool TryFromUnixMilliseconds(long unixTimeMs,
+                                                    out DateTime local)
+        {
+            local = DateTime.Now;
+            if (unixTimeMs <= 0)
+                return false;
+
+            try
+            {
+                local = DateTimeOffset.FromUnixTimeMilliseconds(unixTimeMs)
+                                      .LocalDateTime;
+                return true;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
+            }
+        }
 
         public string Key
         {
@@ -314,13 +353,14 @@ namespace ASCOM.mytjaAstroBox.Switch
 
         private void HandleDeviceLog(string[] parts)
         {
-            // E;<boot-id>;<sequence>;<severity>;<uptime-ms>;<source>;<message...>
-            if (parts.Length < 7)
+            // E;<boot-id>;<sequence>;<severity>;<uptime-ms>;<unix-ms>;<source>;<message...>
+            if (parts.Length < 8)
                 return;
 
             long bootId;
             long sequence;
             long uptime;
+            long unixTime;
             if (!long.TryParse(parts[1], NumberStyles.Integer,
                                CultureInfo.InvariantCulture, out bootId))
                 return;
@@ -330,13 +370,16 @@ namespace ASCOM.mytjaAstroBox.Switch
             if (!long.TryParse(parts[4], NumberStyles.Integer,
                                CultureInfo.InvariantCulture, out uptime))
                 return;
+            if (!long.TryParse(parts[5], NumberStyles.Integer,
+                               CultureInfo.InvariantCulture, out unixTime))
+                return;
 
             string severity = parts[3];
-            string source = parts[5];
-            string message = string.Join(";", parts, 6, parts.Length - 6);
+            string source = parts[6];
+            string message = string.Join(";", parts, 7, parts.Length - 7);
 
             DeviceLogEntry entry = new DeviceLogEntry(
-                bootId, sequence, severity, uptime, source, message);
+                bootId, sequence, severity, uptime, unixTime, source, message);
 
             EventHandler<DeviceLogEntry> handler = DeviceLogReceived;
             if (handler != null)

@@ -74,6 +74,12 @@ namespace ASCOM.mytjaAstroBox.Switch
         // port, so pushed telemetry and command responses cannot be mixed up.
         private static AstroBoxProtocol protocol;
 
+        // How often the host clock is re-pushed while the device reports that
+        // it still has no clock (UNIX_TIME=0 in telemetry).
+        private static readonly long DeviceTimeRetryTicks = 30 * TimeSpan.TicksPerSecond;
+        private static long lastDeviceTimeSyncUtcTicks;
+        private static int deviceTimeSyncInFlight;
+
         private static readonly object switchLock = new object();
         private static readonly Dictionary<string, LocalSwitch> switchByInternalId =
             new Dictionary<string, LocalSwitch>(StringComparer.Ordinal);
@@ -380,6 +386,12 @@ namespace ASCOM.mytjaAstroBox.Switch
                         LogMessage("Connected", "Firmware {0}, protocol {1}",
                                    info.GetString("FWINFO"), protocolVersion);
 
+                        // Give the device a clock before asking it to replay
+                        // its log, so the replayed entries carry an absolute
+                        // timestamp even on boards without a GPS fix. The
+                        // device keeps using GPS time whenever it is available.
+                        SendHostTime();
+
                         // Replay warnings/errors that happened before the host
                         // connected. The device answers LOG with E frames and
                         // then the normal OK response.
@@ -447,7 +459,95 @@ namespace ASCOM.mytjaAstroBox.Switch
         private static void OnTelemetry(object sender, TelemetryEventArgs e)
         {
             ApplySwitchValues(e.Values);
+            MaybeSendHostTime(e.Values);
             firstTelemetry.Set();
+        }
+
+        /// <summary>
+        /// Pushes the host clock to the device with the TIME command. The device
+        /// uses it only as a fallback for the GPS time: GPS wins as soon as the
+        /// receiver reports a fix. This is what keeps the TelescopeData
+        /// calculations and the device log timestamps working on boards where no
+        /// GPS module is connected.
+        /// </summary>
+        private static void SendHostTime()
+        {
+            // A retry may already be running (see MaybeSendHostTime); the clock
+            // is only ever pushed from one place at a time.
+            if (Interlocked.CompareExchange(ref deviceTimeSyncInFlight, 1, 0) != 0)
+                return;
+
+            try
+            {
+                AstroBoxProtocol active = protocol;
+                if (active == null)
+                    return;
+
+                long unixMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                lastDeviceTimeSyncUtcTicks = DateTime.UtcNow.Ticks;
+
+                try
+                {
+                    ProtocolResponse response = active.SendWithTimeout(
+                        "TIME", 2000,
+                        unixMilliseconds.ToString(CultureInfo.InvariantCulture));
+
+                    if (!response.Ok)
+                    {
+                        LogMessage("TimeSync", "AstroBox rejected the host time: {0}",
+                                   response.Status);
+                        return;
+                    }
+
+                    LogMessage("TimeSync",
+                               "Device clock set to {0} (UNIX_TIME={1}, source {2})",
+                               unixMilliseconds,
+                               (long)response.GetValue("UNIX_TIME"),
+                               (int)response.GetValue("TIME_SOURCE", -1));
+                }
+                catch (Exception ex)
+                {
+                    LogMessage("TimeSync", "Sending the host time failed: {0}",
+                               ex.Message);
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref deviceTimeSyncInFlight, 0);
+            }
+        }
+
+        /// <summary>
+        /// Re-sends the host time when the device reports that it still has no
+        /// clock at all (UNIX_TIME=0). This covers a device reset after the
+        /// initial sync and a first TIME that was lost on the wire.
+        /// </summary>
+        private static void MaybeSendHostTime(IReadOnlyDictionary<string, double> values)
+        {
+            if (values == null || protocol == null)
+                return;
+
+            double deviceTime;
+            if (!values.TryGetValue("UNIX_TIME", out deviceTime))
+                return;
+
+            // Any non-zero value means the device already has a clock, from GPS
+            // or from an earlier TIME command.
+            if (deviceTime > 0)
+                return;
+
+            if (Volatile.Read(ref deviceTimeSyncInFlight) != 0)
+                return;
+
+            if (DateTime.UtcNow.Ticks -
+                    Interlocked.Read(ref lastDeviceTimeSyncUtcTicks) <
+                DeviceTimeRetryTicks)
+                return;
+
+            // Never block on the protocol here: this runs on the reader thread,
+            // which is also the thread that completes the request being waited
+            // for, so a synchronous send would deadlock.
+            Task.Run((Action)SendHostTime);
         }
 
         private static void OnProtocolMessage(object sender, string message)
@@ -1156,7 +1256,7 @@ namespace ASCOM.mytjaAstroBox.Switch
 
                 serial.ClearBuffers();
 
-                // Send a real ABP/2 request and look for its response. The
+                // Send a real ABP request and look for its response. The
                 // device also streams telemetry frames, so several lines may
                 // arrive before the response we are waiting for.
                 bool success = false;
