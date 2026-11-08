@@ -1210,6 +1210,10 @@ namespace ASCOM.mytjaAstroBox.Switch
             switches.Add(new LocalSwitch("Roll", "ROLL", true, 360, -360, 0.0001, 0.0, false, true));
             switches.Add(new LocalSwitch("Pitch", "PITCH", true, 360, -360, 0.0001, 0.0, false, true));
             switches.Add(new LocalSwitch("Yaw", "YAW", true, 360, -360, 0.0001, 0.0, false, true));
+            switches.Add(new LocalSwitch("Declination [°]", "DECLINATION", true, 90.0, -90.0, 0.01, 0.0, false, true) { Description = "Declination of the telescope in degrees." });
+            switches.Add(new LocalSwitch("Hour Angle [°]", "HOUR_ANGLE", true, 180.0, -180.0, 0.01, 0.0, false, true) { Description = "Hour angle of the telescope in degrees." });
+            switches.Add(new LocalSwitch("Right Ascension [°]", "RIGHT_ASCENTION", true, 360.0, 0.0, 0.01, 0.0, false, true) { Description = "Right ascension of the telescope in degrees." });
+            switches.Add(new LocalSwitch("Time Source [0=None, 1=GPS, 2=Host]", "TIME_SOURCE", true, 2, 0, 1, 0, false, true) { Description = "Clock source currently used by the ESP: 0 = no clock, 1 = GPS, 2 = host (TIME command)." });
             switches.Add(new LocalSwitch("Temperature (BMP180 1) [°C]", "BMP180_1_TEMP", true, 60.0, -40.0, 0.0001, 0.0, false, true));
             switches.Add(new LocalSwitch("Temperature (BMP180 2) [°C]", "BMP180_2_TEMP", true, 60.0, -40.0, 0.0001, 0.0, false, true));
             switches.Add(new LocalSwitch("Pressure (BMP180 1) [Pa]", "BMP180_1_PRESSURE", true, 150_000, 0, 0.0001, 0.0, false, true));

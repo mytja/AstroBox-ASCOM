@@ -97,6 +97,10 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "ROLL") SwitchHardware.allSwitches[i].Name = rollName.Text;
                 else if (id == "YAW") SwitchHardware.allSwitches[i].Name = yawName.Text;
                 else if (id == "PITCH") SwitchHardware.allSwitches[i].Name = pitchName.Text;
+                else if (id == "DECLINATION") SwitchHardware.allSwitches[i].Name = declinationName.Text;
+                else if (id == "HOUR_ANGLE") SwitchHardware.allSwitches[i].Name = hourAngleName.Text;
+                else if (id == "RIGHT_ASCENTION") SwitchHardware.allSwitches[i].Name = rightAscensionName.Text;
+                else if (id == "TIME_SOURCE") SwitchHardware.allSwitches[i].Name = timeSourceName.Text;
                 else if (id == "CPU_TEMP") SwitchHardware.allSwitches[i].Name = cpuTempName.Text;
                 else if (id == "BMP180_1_TEMP") SwitchHardware.allSwitches[i].Name = bmp1801TempName.Text;
                 else if (id == "BMP180_2_TEMP") SwitchHardware.allSwitches[i].Name = bmp1802TempName.Text;
@@ -133,6 +137,10 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "ROLL") SwitchHardware.allSwitches[i].Hide = rollHide.Checked;
                 else if (id == "YAW") SwitchHardware.allSwitches[i].Hide = yawHide.Checked;
                 else if (id == "PITCH") SwitchHardware.allSwitches[i].Hide = pitchHide.Checked;
+                else if (id == "DECLINATION") SwitchHardware.allSwitches[i].Hide = declinationHide.Checked;
+                else if (id == "HOUR_ANGLE") SwitchHardware.allSwitches[i].Hide = hourAngleHide.Checked;
+                else if (id == "RIGHT_ASCENTION") SwitchHardware.allSwitches[i].Hide = rightAscensionHide.Checked;
+                else if (id == "TIME_SOURCE") SwitchHardware.allSwitches[i].Hide = timeSourceHide.Checked;
                 else if (id == "CPU_TEMP") SwitchHardware.allSwitches[i].Hide = cpuTempHide.Checked;
                 else if (id == "ZERO") SwitchHardware.allSwitches[i].Hide = zeroButtonHide.Checked;
                 else if (id == "BOOTSEL") SwitchHardware.allSwitches[i].Hide = bootselButtonHide.Checked;
@@ -264,6 +272,10 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "ROLL") rollName.Text = value;
                 else if (id == "YAW") yawName.Text = value;
                 else if (id == "PITCH") pitchName.Text = value;
+                else if (id == "DECLINATION") declinationName.Text = value;
+                else if (id == "HOUR_ANGLE") hourAngleName.Text = value;
+                else if (id == "RIGHT_ASCENTION") rightAscensionName.Text = value;
+                else if (id == "TIME_SOURCE") timeSourceName.Text = value;
                 else if (id == "CPU_TEMP") cpuTempName.Text = value;
                 else if (id == "BMP180_1_TEMP") bmp1801TempName.Text = value;
                 else if (id == "BMP180_2_TEMP") bmp1802TempName.Text = value;
@@ -299,6 +311,10 @@ namespace ASCOM.mytjaAstroBox.Switch
                 else if (id == "ROLL") rollHide.Checked = hide;
                 else if (id == "YAW") yawHide.Checked = hide;
                 else if (id == "PITCH") pitchHide.Checked = hide;
+                else if (id == "DECLINATION") declinationHide.Checked = hide;
+                else if (id == "HOUR_ANGLE") hourAngleHide.Checked = hide;
+                else if (id == "RIGHT_ASCENTION") rightAscensionHide.Checked = hide;
+                else if (id == "TIME_SOURCE") timeSourceHide.Checked = hide;
                 else if (id == "CPU_TEMP") cpuTempHide.Checked = hide;
                 else if (id == "ZERO") zeroButtonHide.Checked = hide;
                 else if (id == "BOOTSEL") bootselButtonHide.Checked = hide;

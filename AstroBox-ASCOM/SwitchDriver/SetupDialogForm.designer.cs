@@ -143,6 +143,18 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.bmp1801PressureHide = new System.Windows.Forms.CheckBox();
             this.bmp1801PressureName = new System.Windows.Forms.TextBox();
             this.label38 = new System.Windows.Forms.Label();
+            this.declinationHide = new System.Windows.Forms.CheckBox();
+            this.declinationName = new System.Windows.Forms.TextBox();
+            this.label39 = new System.Windows.Forms.Label();
+            this.hourAngleHide = new System.Windows.Forms.CheckBox();
+            this.hourAngleName = new System.Windows.Forms.TextBox();
+            this.label40 = new System.Windows.Forms.Label();
+            this.rightAscensionHide = new System.Windows.Forms.CheckBox();
+            this.rightAscensionName = new System.Windows.Forms.TextBox();
+            this.label41 = new System.Windows.Forms.Label();
+            this.timeSourceHide = new System.Windows.Forms.CheckBox();
+            this.timeSourceName = new System.Windows.Forms.TextBox();
+            this.label42 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).BeginInit();
             this.SuspendLayout();
             // 
@@ -150,7 +162,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             // 
             this.cmdOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.cmdOK.Location = new System.Drawing.Point(1074, 902);
+            this.cmdOK.Location = new System.Drawing.Point(1074, 947);
             this.cmdOK.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmdOK.Name = "cmdOK";
             this.cmdOK.Size = new System.Drawing.Size(89, 38);
@@ -163,7 +175,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             // 
             this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cmdCancel.Location = new System.Drawing.Point(1074, 949);
+            this.cmdCancel.Location = new System.Drawing.Point(1074, 994);
             this.cmdCancel.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(89, 39);
@@ -171,11 +183,11 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.cmdCancel.Text = "Cancel";
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.CmdCancel_Click);
-            //
+            // 
             // cmdDeviceLog
-            //
+            // 
             this.cmdDeviceLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdDeviceLog.Location = new System.Drawing.Point(850, 949);
+            this.cmdDeviceLog.Location = new System.Drawing.Point(850, 994);
             this.cmdDeviceLog.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmdDeviceLog.Name = "cmdDeviceLog";
             this.cmdDeviceLog.Size = new System.Drawing.Size(200, 39);
@@ -635,7 +647,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.gpsShow.AutoSize = true;
             this.gpsShow.Checked = true;
             this.gpsShow.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.gpsShow.Location = new System.Drawing.Point(28, 910);
+            this.gpsShow.Location = new System.Drawing.Point(29, 1002);
             this.gpsShow.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.gpsShow.Name = "gpsShow";
             this.gpsShow.Size = new System.Drawing.Size(196, 24);
@@ -816,7 +828,7 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.disableFanShow.AutoSize = true;
             this.disableFanShow.Checked = true;
             this.disableFanShow.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.disableFanShow.Location = new System.Drawing.Point(255, 910);
+            this.disableFanShow.Location = new System.Drawing.Point(256, 1002);
             this.disableFanShow.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.disableFanShow.Name = "disableFanShow";
             this.disableFanShow.Size = new System.Drawing.Size(212, 24);
@@ -1240,17 +1252,141 @@ namespace ASCOM.mytjaAstroBox.Switch
             this.label38.TabIndex = 111;
             this.label38.Text = "BMP180-1 Pressure";
             // 
+            // declinationHide
+            // 
+            this.declinationHide.AutoSize = true;
+            this.declinationHide.Location = new System.Drawing.Point(481, 806);
+            this.declinationHide.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.declinationHide.Name = "declinationHide";
+            this.declinationHide.Size = new System.Drawing.Size(68, 24);
+            this.declinationHide.TabIndex = 118;
+            this.declinationHide.Text = "Hide";
+            this.declinationHide.UseVisualStyleBackColor = true;
+            // 
+            // declinationName
+            // 
+            this.declinationName.Location = new System.Drawing.Point(211, 804);
+            this.declinationName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.declinationName.Name = "declinationName";
+            this.declinationName.Size = new System.Drawing.Size(244, 26);
+            this.declinationName.TabIndex = 117;
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(25, 809);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(88, 20);
+            this.label39.TabIndex = 125;
+            this.label39.Text = "Declination";
+            // 
+            // hourAngleHide
+            // 
+            this.hourAngleHide.AutoSize = true;
+            this.hourAngleHide.Location = new System.Drawing.Point(481, 841);
+            this.hourAngleHide.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.hourAngleHide.Name = "hourAngleHide";
+            this.hourAngleHide.Size = new System.Drawing.Size(68, 24);
+            this.hourAngleHide.TabIndex = 120;
+            this.hourAngleHide.Text = "Hide";
+            this.hourAngleHide.UseVisualStyleBackColor = true;
+            // 
+            // hourAngleName
+            // 
+            this.hourAngleName.Location = new System.Drawing.Point(211, 839);
+            this.hourAngleName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.hourAngleName.Name = "hourAngleName";
+            this.hourAngleName.Size = new System.Drawing.Size(244, 26);
+            this.hourAngleName.TabIndex = 119;
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(25, 844);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(89, 20);
+            this.label40.TabIndex = 126;
+            this.label40.Text = "Hour Angle";
+            // 
+            // rightAscensionHide
+            // 
+            this.rightAscensionHide.AutoSize = true;
+            this.rightAscensionHide.Location = new System.Drawing.Point(481, 876);
+            this.rightAscensionHide.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.rightAscensionHide.Name = "rightAscensionHide";
+            this.rightAscensionHide.Size = new System.Drawing.Size(68, 24);
+            this.rightAscensionHide.TabIndex = 122;
+            this.rightAscensionHide.Text = "Hide";
+            this.rightAscensionHide.UseVisualStyleBackColor = true;
+            // 
+            // rightAscensionName
+            // 
+            this.rightAscensionName.Location = new System.Drawing.Point(211, 874);
+            this.rightAscensionName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.rightAscensionName.Name = "rightAscensionName";
+            this.rightAscensionName.Size = new System.Drawing.Size(244, 26);
+            this.rightAscensionName.TabIndex = 121;
+            // 
+            // label41
+            // 
+            this.label41.AutoSize = true;
+            this.label41.Location = new System.Drawing.Point(25, 879);
+            this.label41.Name = "label41";
+            this.label41.Size = new System.Drawing.Size(125, 20);
+            this.label41.TabIndex = 127;
+            this.label41.Text = "Right Ascension";
+            // 
+            // timeSourceHide
+            // 
+            this.timeSourceHide.AutoSize = true;
+            this.timeSourceHide.Location = new System.Drawing.Point(1046, 702);
+            this.timeSourceHide.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.timeSourceHide.Name = "timeSourceHide";
+            this.timeSourceHide.Size = new System.Drawing.Size(68, 24);
+            this.timeSourceHide.TabIndex = 124;
+            this.timeSourceHide.Text = "Hide";
+            this.timeSourceHide.UseVisualStyleBackColor = true;
+            // 
+            // timeSourceName
+            // 
+            this.timeSourceName.Location = new System.Drawing.Point(776, 700);
+            this.timeSourceName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.timeSourceName.Name = "timeSourceName";
+            this.timeSourceName.Size = new System.Drawing.Size(244, 26);
+            this.timeSourceName.TabIndex = 123;
+            // 
+            // label42
+            // 
+            this.label42.AutoSize = true;
+            this.label42.Location = new System.Drawing.Point(600, 705);
+            this.label42.Name = "label42";
+            this.label42.Size = new System.Drawing.Size(98, 20);
+            this.label42.TabIndex = 128;
+            this.label42.Text = "Time Source";
+            // 
             // SetupDialogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1178, 999);
+            this.ClientSize = new System.Drawing.Size(1178, 1044);
             this.Controls.Add(this.bmp1802PressureHide);
             this.Controls.Add(this.bmp1802PressureName);
             this.Controls.Add(this.label37);
             this.Controls.Add(this.bmp1801PressureHide);
             this.Controls.Add(this.bmp1801PressureName);
             this.Controls.Add(this.label38);
+            this.Controls.Add(this.declinationHide);
+            this.Controls.Add(this.declinationName);
+            this.Controls.Add(this.label39);
+            this.Controls.Add(this.hourAngleHide);
+            this.Controls.Add(this.hourAngleName);
+            this.Controls.Add(this.label40);
+            this.Controls.Add(this.rightAscensionHide);
+            this.Controls.Add(this.rightAscensionName);
+            this.Controls.Add(this.label41);
+            this.Controls.Add(this.timeSourceHide);
+            this.Controls.Add(this.timeSourceName);
+            this.Controls.Add(this.label42);
             this.Controls.Add(this.bmp1802TempHide);
             this.Controls.Add(this.bmp1802TempName);
             this.Controls.Add(this.label36);
@@ -1490,5 +1626,17 @@ namespace ASCOM.mytjaAstroBox.Switch
         private System.Windows.Forms.CheckBox bmp1801PressureHide;
         private System.Windows.Forms.TextBox bmp1801PressureName;
         private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.CheckBox declinationHide;
+        private System.Windows.Forms.TextBox declinationName;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.CheckBox hourAngleHide;
+        private System.Windows.Forms.TextBox hourAngleName;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.CheckBox rightAscensionHide;
+        private System.Windows.Forms.TextBox rightAscensionName;
+        private System.Windows.Forms.Label label41;
+        private System.Windows.Forms.CheckBox timeSourceHide;
+        private System.Windows.Forms.TextBox timeSourceName;
+        private System.Windows.Forms.Label label42;
     }
 }
